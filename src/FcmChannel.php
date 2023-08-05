@@ -23,6 +23,11 @@ class FcmChannel
     protected $events;
 
     /**
+     * @var string|null
+     */
+    protected $fcmProject = null;
+
+    /**
      * FcmChannel constructor.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $dispatcher
@@ -30,12 +35,8 @@ class FcmChannel
     public function __construct(Dispatcher $dispatcher)
     {
         $this->events = $dispatcher;
+        $this->fcmProject = config('firebase.default');
     }
-
-    /**
-     * @var string|null
-     */
-    protected $fcmProject = null;
 
     /**
      * Send the given notification.
@@ -62,7 +63,7 @@ class FcmChannel
             throw CouldNotSendNotification::invalidMessage();
         }
 
-        $this->fcmProject = null;
+        $this->fcmProject = config('firebase.default');
         if (method_exists($notification, 'fcmProject')) {
             $this->fcmProject = $notification->fcmProject($notifiable, $fcmMessage);
         }
