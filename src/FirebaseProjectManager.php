@@ -36,7 +36,7 @@ class FirebaseProjectManager
 
     protected function configuration(string $name): array
     {
-        $config = $this->app->config->get('firebase.projects.'.$name);
+        $config = $this->app['firebase']['projects'][$name];
 
         if (!$config) {
             throw new InvalidArgumentException("Firebase project [{$name}] not configured.");
@@ -53,7 +53,7 @@ class FirebaseProjectManager
 
         $isRelativePath = !$isJsonString && !$isAbsoluteLinuxPath && !$isAbsoluteWindowsPath;
 
-        return $isRelativePath ? $this->app->basePath($credentials) : $credentials;
+        return $isRelativePath ? base_path($credentials) : $credentials;
     }
 
     protected function configure(string $name): FirebaseProject
@@ -91,13 +91,13 @@ class FirebaseProjectManager
 
         if ($logChannel = $config['logging']['http_log_channel'] ?? null) {
             $factory = $factory->withHttpLogger(
-                $this->app->make('log')->channel($logChannel)
+                app()->make('log')->channel($logChannel)
             );
         }
 
         if ($logChannel = $config['logging']['http_debug_log_channel'] ?? null) {
             $factory = $factory->withHttpDebugLogger(
-                $this->app->make('log')->channel($logChannel)
+                app()->make('log')->channel($logChannel)
             );
         }
 
@@ -118,12 +118,12 @@ class FirebaseProjectManager
 
     public function getDefaultProject(): string
     {
-        return $this->app->config->get('firebase.default');
+        return Config::get('firebase.default');
     }
 
     public function setDefaultProject(string $name): void
     {
-        $this->app->config->set('firebase.default', $name);
+        Config::set('firebase.default', $name);
     }
 
     public function __call($method, $parameters)
