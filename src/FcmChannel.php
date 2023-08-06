@@ -6,6 +6,8 @@ use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Notifications\Events\NotificationFailed;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Exception\MessagingException;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Message;
@@ -28,6 +30,11 @@ class FcmChannel
     protected $fcmProject = null;
 
     /**
+     * @var FirebaseProjectManager|null
+     */
+    protected $projectManager = null;
+
+    /**
      * FcmChannel constructor.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $dispatcher
@@ -35,7 +42,8 @@ class FcmChannel
     public function __construct(Dispatcher $dispatcher)
     {
         $this->events = $dispatcher;
-        $this->fcmProject = config('firebase.default');
+        $this->fcmProject = Config::get('firebase.default');
+        $this->projectManager = new FirebaseProjectManager();
     }
 
     /**
@@ -63,7 +71,7 @@ class FcmChannel
             throw CouldNotSendNotification::invalidMessage();
         }
 
-        $this->fcmProject = config('firebase.default');
+        $this->fcmProject = Config::get('firebase.default');
         if (method_exists($notification, 'fcmProject')) {
             $this->fcmProject = $notification->fcmProject($notifiable, $fcmMessage);
         }
@@ -94,10 +102,12 @@ class FcmChannel
     protected function messaging()
     {
         try {
-            $messaging = app('firebase.manager')->project($this->fcmProject)->messaging();
+            $messaging = $this->projectManager->project($this->fcmProject)->messaging();
         } catch (BindingResolutionException $e) {
+            Log::error(['messager' => 'BindingResolutionException', 'error' => $e]);
             $messaging = app('firebase.messaging');
         } catch (ReflectionException $e) {
+            Log::error(['messager' => 'ReflectionException', 'error' => $e]);
             $messaging = app('firebase.messaging');
         }
 
