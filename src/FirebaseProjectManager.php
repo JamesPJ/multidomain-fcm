@@ -6,6 +6,7 @@ namespace NotificationChannels\Fcm;
 
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Kreait\Firebase\Exception\InvalidArgumentException;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Http\HttpClientOptions;
@@ -61,6 +62,7 @@ class FirebaseProjectManager
         $factory = new Factory();
 
         $config = $this->configuration($name);
+        Log::info(['config' => $config]);
 
         if ($tenantId = $config['auth']['tenant_id'] ?? null) {
             $factory = $factory->withTenantId($tenantId);
